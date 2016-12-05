@@ -9,7 +9,7 @@
 import Foundation
 
 internal class Event {
-    internal let event_id: String
+    internal let event_id: Int
     internal let event_title: String
     internal let event_year: String
     //    internal let monthday: String?
@@ -27,7 +27,7 @@ internal class Event {
     //        self.title = title
     //    }
     
-    init(event_id: String,
+    init(event_id: Int,
          event_title: String,
          event_year: String,
          title: String) {

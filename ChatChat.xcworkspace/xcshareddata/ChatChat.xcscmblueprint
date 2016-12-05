@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "7FD664BB7848BBF8D8F4E4486CB37C17B9650DA6",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "7FD664BB7848BBF8D8F4E4486CB37C17B9650DA6" : 9223372036854775807,
+    "B3CC06141CF9E1BC6CEBA488B8633CCE4D6EEBE6" : 9223372036854775807
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "B6F63EB4-25F5-4CA5-8E22-ABF9EA3F3D32",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "7FD664BB7848BBF8D8F4E4486CB37C17B9650DA6" : "histotest2\/",
+    "B3CC06141CF9E1BC6CEBA488B8633CCE4D6EEBE6" : ""
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "ChatChat",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "ChatChat.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:micyukcha\/histotest2.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "7FD664BB7848BBF8D8F4E4486CB37C17B9650DA6"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/CocoaPods\/Specs.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "B3CC06141CF9E1BC6CEBA488B8633CCE4D6EEBE6"
+    }
+  ]
+}

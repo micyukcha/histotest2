@@ -27,11 +27,12 @@ import JSQMessagesViewController
 final class ChatViewController: JSQMessagesViewController {
     
     // MARK: Properties
+    
     var userRef: FIRDatabaseReference?
-    private lazy var messageRef: FIRDatabaseReference = self.userRef!.child("messages")
+    private var messageRef: FIRDatabaseReference?
     private var newMessageRefHandle: FIRDatabaseHandle?
     
-    private var events = [Event]()
+    var events = [Event]()
     private var eventRef: FIRDatabaseReference?
     private var eventRefHandle: FIRDatabaseHandle?
     
@@ -50,9 +51,11 @@ final class ChatViewController: JSQMessagesViewController {
         collectionView!.collectionViewLayout.incomingAvatarViewSize = CGSize.zero
         collectionView!.collectionViewLayout.outgoingAvatarViewSize = CGSize.zero
         
-        print(userRef)
         observeEvents()
-//        observeMessages()
+        
+        print(self.userRef)
+        print(senderDisplayName)
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -106,6 +109,97 @@ final class ChatViewController: JSQMessagesViewController {
     
     // MARK: Firebase related methods
     
+    private func observeEvents() {
+        let todayDateString = getTodayDateString()
+        self.eventRef = FIRDatabase.database().reference().child("events").child(todayDateString)
+        
+        var tempEvents: [Event] = []
+        
+        eventRef?.queryOrdered(byChild: "title").queryLimited(toFirst: 30).observeSingleEvent(of: .value, with: { (snapshot) in
+            for item in snapshot.children {
+                let child = item as! FIRDataSnapshot
+                let eventFullValues = child.value as! NSDictionary
+                
+                let id = eventFullValues["event_id"] as! Int
+                let event_title = eventFullValues["event_title"] as! String
+                let year = eventFullValues["event_year"] as! String
+                let title = eventFullValues["title"] as! String
+                
+                if year > "1900" { //use queryOrder/Limit to limit local data (popularity?), then use other metrics for filtering
+                    print("event_title: \(event_title)")
+                    tempEvents.append(Event(event_id: id, event_title: event_title, event_year: year, title: title))
+                    
+                } else {
+                    print("too old")
+                }
+            }
+            print("this is the tempEvents: \(tempEvents)")
+            self.events = tempEvents
+            print("this is the post-events: \(self.events)")
+            
+            // put event into conversation
+            self.saveTopEventToConversation()
+        })
+    }
+    
+    private func saveTopEventToConversation(){
+        // use first event
+        print("this is the first event: \(events[0].event_title)")
+        print("this is the userRef for messages: \(userRef)")
+        let event = events[0]
+        events.remove(at: 0)
+        
+        // 1 - create child ref with unique key, no userRef at time?
+        messageRef = userRef?.child("messages")
+        let itemRef = messageRef?.childByAutoId()
+        
+        let messageItem = [ // 2 - create dict to represent message
+            "senderId": senderId!,
+            "senderName": "Histbotto",
+            "text": event.event_title//,
+            //            "time": Date() as! String,
+        ]
+        
+        itemRef?.setValue(messageItem) // 3 - save value at child location
+        
+        //        JSQSystemSoundPlayer.jsq_playMessageReceivedSound()
+        //        finishReceivingMessage()
+        
+        print("this is the messageItem: \(messageItem)")
+        print("this is the itemRef: \(itemRef)")
+        print("saved event to firebase!")
+    }
+    
+    //    // read firebase event in as message
+    //    let text = event.title
+    //    addMessage(withId: "foo", name: "Histbotto", text: text)
+    //    print("these are the messages: \(messages)")
+    //    //        observeMessages()
+    
+    
+    //    private func observeMessages() {
+    //        messageRef = userRef!.child("messages")
+    //        // 1.
+    //        let messageQuery = messageRef?.queryLimited(toLast:25)
+    //
+    //        // 2. We can use the observe method to listen for new
+    //        // messages being written to the Firebase DB
+    //        newMessageRefHandle = messageQuery?.observe(.childAdded, with: { (snapshot) -> Void in
+    //            // 3
+    //            let messageData = snapshot.value as! Dictionary<String, String>
+    //
+    //            if let id = messageData["senderId"] as String!, let name = messageData["senderName"] as String!, let text = messageData["text"] as String!, text.characters.count > 0 {
+    //                // 4
+    //                self.addMessage(withId: id, name: name, text: text)
+    //
+    //                // 5
+    //                self.finishReceivingMessage()
+    //            } else {
+    //                print("Error! Could not decode message data")
+    //            }
+    //        })
+    //    }
+    
     override func didPressSend(_ button: UIButton!,
                                withMessageText text: String!,
                                senderId: String!,
@@ -116,68 +210,24 @@ final class ChatViewController: JSQMessagesViewController {
             return
         }
         
-        let itemRef = messageRef.childByAutoId() // 1 - create child ref with unique key
+        let itemRef = messageRef?.childByAutoId() // 1 - create child ref with unique key
         let messageItem = [ // 2 - create dict to represent message
             "senderId": senderId!,
             "senderName": senderDisplayName!,
             "text": text,
             ]
         
-        itemRef.setValue(messageItem) // 3 - save value at child location
+        itemRef?.setValue(messageItem) // 3 - save value at child location
         
         JSQSystemSoundPlayer.jsq_playMessageSentSound() // 4
         
         finishSendingMessage() // 5 - send and reset input toolbar to empty
         print("works!")
+        print("heyoMessage\(events)")
     }
-    
-    private func observeEvents() {
-        
-        let todayDateString = getTodayDateString()
-        print(todayDateString)
-        self.eventRef = FIRDatabase.database().reference().child("events").child(todayDateString)
-        print(eventRef)
-        eventRefHandle = eventRef?.queryOrdered(byChild: "title").queryLimited(toFirst: 10).observe(.childAdded, with: { (snapshot) -> Void in // 1
-            let eventData = snapshot.value as! Dictionary<String, AnyObject> // 2
-            
-            let year = eventData["event_year"] as! String
-            
-            if year > "1500" { //use queryOrder/Limit to limit local data (popularity?), then use other metrics for matching
-                let id = snapshot.key
-                let event_title = eventData["event_title"] as! String
-                let title = eventData["title"] as! String
-                print(event_title)
-                self.events.append(Event(event_id: id, event_title: event_title, event_year: year, title: title))
-            } else {
-                print("Error! Could not decode channel data. Old event.")
-            }
-        })
-    }
-    
-//    private func observeMessages() {
-//        messageRef = userRef!.child("messages")
-//        // 1.
-//        let messageQuery = messageRef.queryLimited(toLast:25)
-//        
-//        // 2. We can use the observe method to listen for new
-//        // messages being written to the Firebase DB
-//        newMessageRefHandle = messageQuery.observe(.childAdded, with: { (snapshot) -> Void in
-//            // 3
-//            let messageData = snapshot.value as! Dictionary<String, String>
-//            
-//            if let id = messageData["senderId"] as String!, let name = messageData["senderName"] as String!, let text = messageData["text"] as String!, text.characters.count > 0 {
-//                // 4
-//                self.addMessage(withId: id, name: name, text: text)
-//                
-//                // 5
-//                self.finishReceivingMessage()
-//            } else {
-//                print("Error! Could not decode message data")
-//            }
-//        })
-//    }
     
     // MARK: UI and User Interaction
+    
     private func setupOutgoingBubble() -> JSQMessagesBubbleImage {
         let bubbleImageFactory = JSQMessagesBubbleImageFactory()
         return bubbleImageFactory!.outgoingMessagesBubbleImage(with: UIColor.jsq_messageBubbleBlue())
@@ -202,5 +252,5 @@ final class ChatViewController: JSQMessagesViewController {
         let stringDate = formatter.string(from: Date())
         return stringDate
     }
-
+    
 }

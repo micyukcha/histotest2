@@ -25,7 +25,8 @@ import Firebase
 
 class LoginViewController: UIViewController {
     
-
+    // MARK: Properties
+    
     @IBOutlet var nameField: UITextField!
     @IBOutlet weak var bottomLayoutGuideConstraint: NSLayoutConstraint!
     
@@ -56,6 +57,8 @@ class LoginViewController: UIViewController {
         }
     }
     
+    // MARK :Actions
+    
     @IBAction func loginDidTouch(_ sender: AnyObject) {
         if nameField?.text != "" { // 1
             FIRAuth.auth()?.signInAnonymously(completion: { (user, error) in // 2
@@ -66,12 +69,14 @@ class LoginViewController: UIViewController {
             })
         }
         
+        var tempUserRef: FIRDatabaseReference?
+        
         channelRef.queryOrdered(byChild: "uid").queryEqual(toValue: uid).observeSingleEvent(of: .value, with: { (snapshot) in
             if snapshot.exists() {
                 print("uid exist with \(snapshot.childrenCount) number of children")
                 
                 for s in snapshot.children.allObjects as! [FIRDataSnapshot] {
-                    self.userRef = self.channelRef.child(s.key)
+                    tempUserRef = self.channelRef.child(s.key)
                 }
                 
             } else {
@@ -79,42 +84,51 @@ class LoginViewController: UIViewController {
                 print(snapshot.key, snapshot.value)
                 
                 if let name = self.nameField?.text { // 1
-                    self.userRef = self.channelRef.childByAutoId()
+                    tempUserRef = self.channelRef.childByAutoId()
                     
                     let channelItem = [
                         "name": name,
                         "uid": self.uid
-                    ]                    
-                    self.userRef?.setValue(channelItem)
+                    ]
+                    tempUserRef?.setValue(channelItem)
                 }
             }
+            self.userRef = tempUserRef
+            DispatchQueue.main.async {
+                self.performSegue(withIdentifier: "LoginToChat", sender: tempUserRef) //put this into IBAction??
+                print("passsed \(self.userRef)")
+                
+            }
         })
-        
-        self.performSegue(withIdentifier: "LoginToChat", sender: nil)
-
     }
     
     // MARK: Navigation
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         super.prepare(for: segue, sender: sender)
         let navVc = segue.destination as! UINavigationController
         let chatVc = navVc.viewControllers.first as! ChatViewController
-        
         chatVc.senderDisplayName = nameField?.text
-        chatVc.userRef = userRef
+
+        if let userRef = sender as? FIRDatabaseReference {
+            if "LoginToChat" == segue.identifier {
+                print("passsing \(self.userRef)")
+                chatVc.userRef = userRef
+        }
     }
-    
-    // MARK: - Notifications
-    
-    func keyboardWillShowNotification(_ notification: Notification) {
-        let keyboardEndFrame = ((notification as NSNotification).userInfo![UIKeyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
-        let convertedKeyboardEndFrame = view.convert(keyboardEndFrame, from: view.window)
-        bottomLayoutGuideConstraint.constant = view.bounds.maxY - convertedKeyboardEndFrame.minY
-    }
-    
-    func keyboardWillHideNotification(_ notification: Notification) {
-        bottomLayoutGuideConstraint.constant = 48
-    }
-    
+}
+
+// MARK: - Notifications
+
+func keyboardWillShowNotification(_ notification: Notification) {
+    let keyboardEndFrame = ((notification as NSNotification).userInfo![UIKeyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
+    let convertedKeyboardEndFrame = view.convert(keyboardEndFrame, from: view.window)
+    bottomLayoutGuideConstraint.constant = view.bounds.maxY - convertedKeyboardEndFrame.minY
+}
+
+func keyboardWillHideNotification(_ notification: Notification) {
+    bottomLayoutGuideConstraint.constant = 48
+}
+
 }
 
