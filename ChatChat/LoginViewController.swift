@@ -95,7 +95,7 @@ class LoginViewController: UIViewController {
             }
             self.userRef = tempUserRef
             DispatchQueue.main.async {
-                self.performSegue(withIdentifier: "LoginToChat", sender: tempUserRef) //put this into IBAction??
+                self.performSegue(withIdentifier: "LoginToChat", sender: tempUserRef)
                 print("passsed \(self.userRef)")
                 
             }
@@ -105,30 +105,31 @@ class LoginViewController: UIViewController {
     // MARK: Navigation
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        super.prepare(for: segue, sender: sender)
-        let navVc = segue.destination as! UINavigationController
-        let chatVc = navVc.viewControllers.first as! ChatViewController
-        chatVc.senderDisplayName = nameField?.text
-
-        if let userRef = sender as? FIRDatabaseReference {
-            if "LoginToChat" == segue.identifier {
-                print("passsing \(self.userRef)")
-                chatVc.userRef = userRef
+        if "LoginToChat" == segue.identifier {
+            if let navVc = segue.destination as? UINavigationController {
+                if let chatVc = navVc.topViewController as? ChatViewController {
+                    chatVc.senderDisplayName = nameField?.text
+                    if let userRef = sender as? FIRDatabaseReference {
+                        chatVc.userRef = userRef
+                        print("passsing \(self.userRef) to \(chatVc)")
+                    }
+                }
+            }
         }
+        super.prepare(for: segue, sender: sender)
     }
-}
-
-// MARK: - Notifications
-
-func keyboardWillShowNotification(_ notification: Notification) {
-    let keyboardEndFrame = ((notification as NSNotification).userInfo![UIKeyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
-    let convertedKeyboardEndFrame = view.convert(keyboardEndFrame, from: view.window)
-    bottomLayoutGuideConstraint.constant = view.bounds.maxY - convertedKeyboardEndFrame.minY
-}
-
-func keyboardWillHideNotification(_ notification: Notification) {
-    bottomLayoutGuideConstraint.constant = 48
-}
-
+    
+    // MARK: - Notifications
+    
+    func keyboardWillShowNotification(_ notification: Notification) {
+        let keyboardEndFrame = ((notification as NSNotification).userInfo![UIKeyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
+        let convertedKeyboardEndFrame = view.convert(keyboardEndFrame, from: view.window)
+        bottomLayoutGuideConstraint.constant = view.bounds.maxY - convertedKeyboardEndFrame.minY
+    }
+    
+    func keyboardWillHideNotification(_ notification: Notification) {
+        bottomLayoutGuideConstraint.constant = 48
+    }
+    
 }
 

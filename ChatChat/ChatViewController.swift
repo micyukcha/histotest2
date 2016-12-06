@@ -27,7 +27,7 @@ import JSQMessagesViewController
 final class ChatViewController: JSQMessagesViewController {
     
     // MARK: Properties
-    
+
     var userRef: FIRDatabaseReference?
     private var messageRef: FIRDatabaseReference?
     private var newMessageRefHandle: FIRDatabaseHandle?
@@ -128,9 +128,8 @@ final class ChatViewController: JSQMessagesViewController {
                 if year > "1900" { //use queryOrder/Limit to limit local data (popularity?), then use other metrics for filtering
                     print("event_title: \(event_title)")
                     tempEvents.append(Event(event_id: id, event_title: event_title, event_year: year, title: title))
-                    
                 } else {
-                    print("too old")
+//                    print("too old")
                 }
             }
             print("this is the tempEvents: \(tempEvents)")
