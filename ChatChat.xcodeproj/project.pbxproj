@@ -15,6 +15,7 @@
 		6C58ED241DF08B8300908916 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6C58ED231DF08B8300908916 /* GoogleService-Info.plist */; };
 		6C58ED261DF08BB800908916 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C58ED251DF08BB800908916 /* Event.swift */; };
 		6C58ED2C1DF54D5C00908916 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6C58ED2A1DF54D5C00908916 /* Main.storyboard */; };
+		6C58ED2E1DF7254700908916 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C58ED2D1DF7254700908916 /* Date.swift */; };
 		BB53557A1BEF765800321277 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB5355791BEF765800321277 /* AppDelegate.swift */; };
 		BB53557C1BEF765800321277 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB53557B1BEF765800321277 /* LoginViewController.swift */; };
 		BB5355811BEF765800321277 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB5355801BEF765800321277 /* Assets.xcassets */; };
@@ -35,6 +36,7 @@
 		6C58ED231DF08B8300908916 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "ChatChat/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		6C58ED251DF08BB800908916 /* Event.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 		6C58ED2B1DF54D5C00908916 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = ../../../../../.Trash/histotest2/ChatChat/Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		6C58ED2D1DF7254700908916 /* Date.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Date.swift; sourceTree = "<group>"; };
 		BB1E97061C147BAA00E34853 /* ChatChat-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ChatChat-Bridging-Header.h"; sourceTree = "<group>"; };
 		BB5355761BEF765800321277 /* ChatChat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChatChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB5355791BEF765800321277 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -65,6 +67,7 @@
 			children = (
 				45A0D9001D4BB5E900F26729 /* Channel.swift */,
 				6C58ED251DF08BB800908916 /* Event.swift */,
+				6C58ED2D1DF7254700908916 /* Date.swift */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -287,6 +290,7 @@
 				6C58ED261DF08BB800908916 /* Event.swift in Sources */,
 				BB53557C1BEF765800321277 /* LoginViewController.swift in Sources */,
 				45A0D9011D4BB5E900F26729 /* Channel.swift in Sources */,
+				6C58ED2E1DF7254700908916 /* Date.swift in Sources */,
 				459780D31D6465FB007BE66F /* UIImage+Gif.swift in Sources */,
 				BB53558F1BEF7E9700321277 /* ChatViewController.swift in Sources */,
 				BB53557A1BEF765800321277 /* AppDelegate.swift in Sources */,

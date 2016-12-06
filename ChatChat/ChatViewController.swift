@@ -157,7 +157,7 @@ final class ChatViewController: JSQMessagesViewController {
             "senderName": "Histbotto",
             "title": event.title,
             "eventYear": event.event_year,
-            "messageTime": DateFormatter().string(from: Date())
+            "messageTime": Date().datetime
         ]
         
         itemRef?.setValue(messageItem) // 3 - save value at child location
