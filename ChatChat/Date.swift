@@ -24,4 +24,12 @@ extension Date {
     var datetime: String {
         return Formatter.datetime.string(from: self)
     }
+    
+    var hour: Int {
+        let calendar = NSCalendar.current
+        return calendar.component(.hour, from: Date())
+        
+    }
 }
+
+//print(Date().hour) // check AM vs PM

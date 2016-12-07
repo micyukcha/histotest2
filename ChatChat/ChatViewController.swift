@@ -27,7 +27,7 @@ import JSQMessagesViewController
 final class ChatViewController: JSQMessagesViewController {
     
     // MARK: Properties
-
+    
     var userRef: FIRDatabaseReference?
     private var messageRef: FIRDatabaseReference?
     private var newMessageRefHandle: FIRDatabaseHandle?
@@ -129,7 +129,7 @@ final class ChatViewController: JSQMessagesViewController {
                     print("event_title: \(event_title)")
                     tempEvents.append(Event(event_id: id, event_title: event_title, event_year: year, title: title))
                 } else {
-//                    print("too old")
+                    //                    print("too old")
                 }
             }
             print("this is the tempEvents: \(tempEvents)")
@@ -153,7 +153,7 @@ final class ChatViewController: JSQMessagesViewController {
         let itemRef = messageRef?.childByAutoId()
         
         let messageItem = [ // 2 - create dict to represent message
-            "senderId": senderId!,
+            "senderId": "Histbotto",
             "senderName": "Histbotto",
             "title": event.title,
             "eventYear": event.event_year,
@@ -162,69 +162,69 @@ final class ChatViewController: JSQMessagesViewController {
         
         itemRef?.setValue(messageItem) // 3 - save value at child location
         
-        //        JSQSystemSoundPlayer.jsq_playMessageReceivedSound()
-        //        finishReceivingMessage()
-        
         print("this is the messageItem: \(messageItem)")
-        print("this is the itemRef: \(itemRef)")
         print("saved event to firebase!")
+        
+        self.observeMessages()
     }
     
-    //    // read firebase event in as message
-    //    let text = event.title
-    //    addMessage(withId: "foo", name: "Histbotto", text: text)
-    //    print("these are the messages: \(messages)")
-    //    //        observeMessages()
-    
-    
-    //    private func observeMessages() {
-    //        messageRef = userRef!.child("messages")
-    //        // 1.
-    //        let messageQuery = messageRef?.queryLimited(toLast:25)
-    //
-    //        // 2. We can use the observe method to listen for new
-    //        // messages being written to the Firebase DB
-    //        newMessageRefHandle = messageQuery?.observe(.childAdded, with: { (snapshot) -> Void in
-    //            // 3
-    //            let messageData = snapshot.value as! Dictionary<String, String>
-    //
-    //            if let id = messageData["senderId"] as String!, let name = messageData["senderName"] as String!, let text = messageData["text"] as String!, text.characters.count > 0 {
-    //                // 4
-    //                self.addMessage(withId: id, name: name, text: text)
-    //
-    //                // 5
-    //                self.finishReceivingMessage()
-    //            } else {
-    //                print("Error! Could not decode message data")
-    //            }
-    //        })
-    //    }
-    
-    override func didPressSend(_ button: UIButton!,
-                               withMessageText text: String!,
-                               senderId: String!,
-                               senderDisplayName: String!,
-                               date: Date!) {
-        guard let text = text else {
-            assertionFailure("The conversation number or text is nil")
-            return
-        }
+    private func observeMessages() {
+        messageRef = userRef!.child("messages")
+        let messageQuery = messageRef?.queryLimited(toLast:20)
         
-        let itemRef = messageRef?.childByAutoId() // 1 - create child ref with unique key
-        let messageItem = [ // 2 - create dict to represent message
-            "senderId": senderId!,
-            "senderName": senderDisplayName!,
-            "text": text,
-            ]
-        
-        itemRef?.setValue(messageItem) // 3 - save value at child location
-        
-        JSQSystemSoundPlayer.jsq_playMessageSentSound() // 4
-        
-        finishSendingMessage() // 5 - send and reset input toolbar to empty
-        print("works!")
-        print("heyoMessage\(events)")
+        // 2. We can use the observe method to listen for new
+        // messages being written to the Firebase DB
+        newMessageRefHandle = messageQuery?.observe(.childAdded, with: { (snapshot) -> Void in
+            let messageData = snapshot.value as! Dictionary<String, String>
+            
+            if let id = messageData["senderId"] as String!,
+                let name = messageData["senderName"] as String!,
+                let title = messageData["title"] as String!,
+                let eventYear = messageData["eventYear"] as String!,  //convert to Int
+                title.characters.count > 0 {
+                
+                    let calendar = NSCalendar.current
+                    var currentYear = calendar.component(.year, from: Date())
+                    var text = "In \(eventYear), \(title) Today is \(currentYear)"  //change text to "It has been \(currentYear-eventYear) years since
+                    // 4
+                    self.addMessage(withId: id, name: name, text: text)
+                    print("these are the messages: \(self.messages)")
+                    
+                    JSQSystemSoundPlayer.jsq_playMessageReceivedSound()
+                    // 5
+                    self.finishReceivingMessage()
+                
+            } else {
+                print("Error! Could not decode message data")
+            }
+        })
     }
+    
+//    override func didPressSend(_ button: UIButton!,
+//                               withMessageText text: String!,
+//                               senderId: String!,
+//                               senderDisplayName: String!,
+//                               date: Date!) {
+//        guard let text = text else {
+//            assertionFailure("The conversation number or text is nil")
+//            return
+//        }
+//        
+//        let itemRef = messageRef?.childByAutoId() // 1 - create child ref with unique key
+//        let messageItem = [ // 2 - create dict to represent message
+//            "senderId": senderId!,
+//            "senderName": senderDisplayName!,
+//            "text": text,
+//            ]
+//        
+//        itemRef?.setValue(messageItem) // 3 - save value at child location
+//        
+//        JSQSystemSoundPlayer.jsq_playMessageSentSound() // 4
+//        
+//        finishSendingMessage() // 5 - send and reset input toolbar to empty
+//        print("works!")
+//        print("heyoMessage\(events)")
+//    }
     
     // MARK: UI and User Interaction
     
