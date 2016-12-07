@@ -33,6 +33,7 @@ final class ChatViewController: JSQMessagesViewController {
     private var newMessageRefHandle: FIRDatabaseHandle?
     
     var events = [Event]()
+    var currentEvent: Event?
     private var eventRef: FIRDatabaseReference?
     private var eventRefHandle: FIRDatabaseHandle?
     
@@ -55,7 +56,6 @@ final class ChatViewController: JSQMessagesViewController {
         
         print(self.userRef)
         print(senderDisplayName)
-        
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -132,40 +132,77 @@ final class ChatViewController: JSQMessagesViewController {
                     //                    print("too old")
                 }
             }
-            print("this is the tempEvents: \(tempEvents)")
             self.events = tempEvents
             print("this is the post-events: \(self.events)")
             
             // put event into conversation
-            self.saveTopEventToConversation()
+            self.openConversationWithTopEvent()
         })
     }
     
-    private func saveTopEventToConversation(){
-        // use first event
-        print("this is the first event: \(events[0].event_title)")
-        print("this is the userRef for messages: \(userRef)")
-        let event = events[0]
-        events.remove(at: 0)
+    private func openConversationWithTopEvent(){
+        // gets and sets current event
+        if events.isEmpty == false {
+            currentEvent = events[0]
+            events.remove(at: 0)
+            
+            // formats opening message using event and current year
+            if let currentEvent = currentEvent {
+                print("this is the first event: \(currentEvent)")
+                let title = currentEvent.title
+                let eventYear = Int(currentEvent.event_year)
+                
+                let calendar = NSCalendar.current
+                let currentYear = calendar.component(.year, from: Date())
+
+                let text = "\(currentYear-eventYear!) years ago, \(title)"
+                
+                // 1 - create child ref with unique key for intro message
+                print("this is the userRef for messages: \(userRef)")
+                messageRef = userRef?.child("messages")
+                let itemRef = messageRef?.childByAutoId()
+                
+                let messageItem = [ // 2 - create dict to represent message
+                    "senderId": "Histbotto",
+                    "senderName": "Histbotto",
+                    "text": text,
+                    "messageTime": Date().datetime
+                ]
+                
+                itemRef?.setValue(messageItem) // 3 - save value at child location
+                
+                print("this is the messageItem: \(messageItem)")
+                print("saved event to firebase!")
+            }
+        }
         
-        // 1 - create child ref with unique key, no userRef at time?
-        messageRef = userRef?.child("messages")
-        let itemRef = messageRef?.childByAutoId()
+        self.observeMessages()
+    }
+    
+    override func didPressSend(_ button: UIButton!,
+                               withMessageText text: String!,
+                               senderId: String!,
+                               senderDisplayName: String!,
+                               date: Date!) {
+        guard let text = text else {
+            assertionFailure("The conversation number or text is nil")
+            return
+        }
         
+        let itemRef = messageRef?.childByAutoId() // 1 - create child ref with unique key
         let messageItem = [ // 2 - create dict to represent message
-            "senderId": "Histbotto",
-            "senderName": "Histbotto",
-            "title": event.title,
-            "eventYear": event.event_year,
+            "senderId": senderId!,
+            "senderName": senderDisplayName!,
+            "text": text,
             "messageTime": Date().datetime
         ]
         
         itemRef?.setValue(messageItem) // 3 - save value at child location
         
-        print("this is the messageItem: \(messageItem)")
-        print("saved event to firebase!")
+        JSQSystemSoundPlayer.jsq_playMessageSentSound() // 4
         
-        self.observeMessages()
+        finishSendingMessage() // 5 - send and reset input toolbar to empty
+        print("message sent for \(messageItem)")
     }
     
     private func observeMessages() {
@@ -176,21 +213,16 @@ final class ChatViewController: JSQMessagesViewController {
         // messages being written to the Firebase DB
         newMessageRefHandle = messageQuery?.observe(.childAdded, with: { (snapshot) -> Void in
             let messageData = snapshot.value as! Dictionary<String, String>
+            print("these are the new messages: \(messageData)")
             
             if let id = messageData["senderId"] as String!,
                 let name = messageData["senderName"] as String!,
-                let title = messageData["title"] as String!,
-                let eventYear = messageData["eventYear"] as String!,  //convert to Int
-                title.characters.count > 0 {
+                let text = messageData["text"] as String!,
+                text.characters.count > 0 {
                 
-                    let calendar = NSCalendar.current
-                    var currentYear = calendar.component(.year, from: Date())
-                    var text = "In \(eventYear), \(title) Today is \(currentYear)"  //change text to "It has been \(currentYear-eventYear) years since
                     // 4
                     self.addMessage(withId: id, name: name, text: text)
-                    print("these are the messages: \(self.messages)")
                     
-                    JSQSystemSoundPlayer.jsq_playMessageReceivedSound()
                     // 5
                     self.finishReceivingMessage()
                 
@@ -199,32 +231,6 @@ final class ChatViewController: JSQMessagesViewController {
             }
         })
     }
-    
-//    override func didPressSend(_ button: UIButton!,
-//                               withMessageText text: String!,
-//                               senderId: String!,
-//                               senderDisplayName: String!,
-//                               date: Date!) {
-//        guard let text = text else {
-//            assertionFailure("The conversation number or text is nil")
-//            return
-//        }
-//        
-//        let itemRef = messageRef?.childByAutoId() // 1 - create child ref with unique key
-//        let messageItem = [ // 2 - create dict to represent message
-//            "senderId": senderId!,
-//            "senderName": senderDisplayName!,
-//            "text": text,
-//            ]
-//        
-//        itemRef?.setValue(messageItem) // 3 - save value at child location
-//        
-//        JSQSystemSoundPlayer.jsq_playMessageSentSound() // 4
-//        
-//        finishSendingMessage() // 5 - send and reset input toolbar to empty
-//        print("works!")
-//        print("heyoMessage\(events)")
-//    }
     
     // MARK: UI and User Interaction
     
