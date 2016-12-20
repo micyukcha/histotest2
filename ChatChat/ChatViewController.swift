@@ -54,10 +54,11 @@ final class ChatViewController: JSQMessagesViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = "histobotto"
-        self.collectionView.collectionViewLayout.springinessEnabled = true
         self.senderId = FIRAuth.auth()?.currentUser?.uid
         print("here is the userRef \(self.senderId) and senderDisplayName \(senderDisplayName)")
+
+        self.title = "histobotto"
+//        self.collectionView.collectionViewLayout.springinessEnabled = true
         
         // No avatars
         collectionView!.collectionViewLayout.incomingAvatarViewSize = CGSize.zero
@@ -216,6 +217,33 @@ final class ChatViewController: JSQMessagesViewController {
         }
     }
     
+    // MARK: User Interaction
+    
+    private func getEventDetail() {
+        print("user wants more, need follow up reply besides year: \(currentEvent?.event_year)")
+        
+        // pending description / link data
+        if let currentEvent = currentEvent {
+            let descriptionYetToCome = currentEvent.title
+            let linkYetToCome = currentEvent.title
+            
+            // 1 - create child ref with unique key for intro message
+            messageRef = userRef?.child("messages")
+            let itemRef = messageRef?.childByAutoId()
+            
+            let messageItem = [ // 2 - create dict to represent message
+                "senderId": "Histobotto",
+                "senderName": "Histobotto",
+                "text": descriptionYetToCome,
+                "messageTime": Date().datetime
+            ]
+            print("converted description to message!")
+            
+            itemRef?.setValue(messageItem) // 3 - save value at child location
+            print("saved description message to firebase!")
+        }
+    }
+    
     override func didPressSend(_ button: UIButton!,
                                withMessageText text: String!,
                                senderId: String!,
@@ -253,7 +281,7 @@ final class ChatViewController: JSQMessagesViewController {
         checkEventDetailStatus()
     }
     
-    // MARK: UI and User Interaction
+    // MARK: UI
     
     private func setupOutgoingBubble() -> JSQMessagesBubbleImage {
         let bubbleImageFactory = JSQMessagesBubbleImageFactory()
@@ -263,6 +291,16 @@ final class ChatViewController: JSQMessagesViewController {
     private func setupIncomingBubble() -> JSQMessagesBubbleImage {
         let bubbleImageFactory = JSQMessagesBubbleImageFactory()
         return bubbleImageFactory!.incomingMessagesBubbleImage(with: UIColor.jsq_messageBubbleLightGray())
+    }
+    
+    // MARK: Helper functions
+    
+    //get today's date
+    func getTodayDateString() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM d"
+        let stringDate = formatter.string(from: Date())
+        return stringDate
     }
     
     private func addMessage(withId id: String, name: String, text: String) {
@@ -280,38 +318,5 @@ final class ChatViewController: JSQMessagesViewController {
         }
     }
     
-    private func getEventDetail() {
-        print("user wants more, need follow up reply besides year: \(currentEvent?.event_year)")
-        
-        // pending description / link data
-        if let currentEvent = currentEvent {
-            let descriptionYetToCome = currentEvent.title
-            let linkYetToCome = currentEvent.title
-
-            // 1 - create child ref with unique key for intro message
-            messageRef = userRef?.child("messages")
-            let itemRef = messageRef?.childByAutoId()
-            
-            let messageItem = [ // 2 - create dict to represent message
-                "senderId": "Histobotto",
-                "senderName": "Histobotto",
-                "text": descriptionYetToCome,
-                "messageTime": Date().datetime
-            ]
-            print("converted description to message!")
-            
-            itemRef?.setValue(messageItem) // 3 - save value at child location
-            print("saved description message to firebase!")
-        }
-    }
-    
     // MARK: UITextViewDelegate methods
-    //get today's date
-    func getTodayDateString() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM d"
-        let stringDate = formatter.string(from: Date())
-        return stringDate
-    }
-    
 }
