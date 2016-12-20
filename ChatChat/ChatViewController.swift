@@ -281,7 +281,28 @@ final class ChatViewController: JSQMessagesViewController {
     }
     
     private func getEventDetail() {
-        print("user wants more... \(currentEvent?.event_year)")
+        print("user wants more, need follow up reply besides year: \(currentEvent?.event_year)")
+        
+        // pending description / link data
+        if let currentEvent = currentEvent {
+            let descriptionYetToCome = currentEvent.title
+            let linkYetToCome = currentEvent.title
+
+            // 1 - create child ref with unique key for intro message
+            messageRef = userRef?.child("messages")
+            let itemRef = messageRef?.childByAutoId()
+            
+            let messageItem = [ // 2 - create dict to represent message
+                "senderId": "Histobotto",
+                "senderName": "Histobotto",
+                "text": descriptionYetToCome,
+                "messageTime": Date().datetime
+            ]
+            print("converted description to message!")
+            
+            itemRef?.setValue(messageItem) // 3 - save value at child location
+            print("saved description message to firebase!")
+        }
     }
     
     // MARK: UITextViewDelegate methods
