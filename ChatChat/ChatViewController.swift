@@ -42,11 +42,20 @@ final class ChatViewController: JSQMessagesViewController {
     lazy var outgoingBubbleImageView: JSQMessagesBubbleImage = self.setupOutgoingBubble()
     lazy var incomingBubbleImageView: JSQMessagesBubbleImage = self.setupIncomingBubble()
     
+    enum eventDetailStatus {
+        case getEventDetail
+        case getNextEvent
+    }
+    
+    var currentEventDetailStatus = eventDetailStatus.getEventDetail
+    
+    
     // MARK: View Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "histobotto"
+        self.collectionView.collectionViewLayout.springinessEnabled = true
         self.senderId = FIRAuth.auth()?.currentUser?.uid
         print("here is the userRef \(self.senderId) and senderDisplayName \(senderDisplayName)")
         
@@ -164,14 +173,14 @@ final class ChatViewController: JSQMessagesViewController {
                 }
             }
             self.events = tempEvents
-            print("do we have events to share for today? \(self.events.isEmpty == false)")
+            print("events to share for today? \(self.events.isEmpty == false)")
             
-            // open conversation with top event
-            self.addConversationWithNextEvent()
+            // open conversation using top event
+            self.startEventTopic()
         })
     }
     
-    private func addConversationWithNextEvent(){
+    private func startEventTopic(){
         // gets and sets current event
         if events.isEmpty == false {
             currentEvent = events[0]
@@ -179,7 +188,7 @@ final class ChatViewController: JSQMessagesViewController {
             
             // formats opening message using event and current year
             if let currentEvent = currentEvent {
-                print("this is the current event: \(currentEvent.event_title)")
+                print("set current event to: \(currentEvent.event_title)")
                 let title = currentEvent.title
                 let eventYear = Int(currentEvent.event_year)
                 
@@ -198,13 +207,12 @@ final class ChatViewController: JSQMessagesViewController {
                     "text": text,
                     "messageTime": Date().datetime
                 ]
+                print("converted event to message!")
                 
                 itemRef?.setValue(messageItem) // 3 - save value at child location
-                
-                print("at userRef \(userRef), saving messageItem: \(messageItem)")
-                print("saved event to firebase!")
+                print("saved message to firebase at userRef \(userRef)!")
             }
-            print("this is the next event \(events[0].event_title)")
+            print("the next event is \(events[0].event_title)")
         }
     }
     
@@ -231,7 +239,18 @@ final class ChatViewController: JSQMessagesViewController {
         JSQSystemSoundPlayer.jsq_playMessageSentSound() // 4
         
         finishSendingMessage() // 5 - send and reset input toolbar to empty
-        print("message sent for \(messageItem)")
+        print("user had a message: \(messageItem)")
+        
+        // change eventDetailStatus and then exercise switch statement to get HB response
+        if (text.caseInsensitiveCompare("yes") == ComparisonResult.orderedSame) {
+            currentEventDetailStatus = .getEventDetail
+            print("user wants more, switch enum to getEventDetail, run getEventDetail(), update responses")
+        } else if (text.caseInsensitiveCompare("next") == ComparisonResult.orderedSame) {
+            currentEventDetailStatus = .getNextEvent
+            print("user wants next, switch enum to getNextEvent, run startNextTopic(), update responses")
+        }
+        
+        checkEventDetailStatus()
     }
     
     // MARK: UI and User Interaction
@@ -250,6 +269,19 @@ final class ChatViewController: JSQMessagesViewController {
         if let message = JSQMessage(senderId: id, displayName: name, text: text) {
             messages.append(message)
         }
+    }
+    
+    private func checkEventDetailStatus() {
+        switch currentEventDetailStatus {
+        case .getEventDetail:
+            getEventDetail()
+        case .getNextEvent:
+            startEventTopic()
+        }
+    }
+    
+    private func getEventDetail() {
+        print("user wants more... \(currentEvent?.event_year)")
     }
     
     // MARK: UITextViewDelegate methods
