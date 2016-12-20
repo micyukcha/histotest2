@@ -46,16 +46,17 @@ final class ChatViewController: JSQMessagesViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.title = "histobotto"
         self.senderId = FIRAuth.auth()?.currentUser?.uid
+        print("here is the userRef \(self.senderId) and senderDisplayName \(senderDisplayName)")
         
         // No avatars
         collectionView!.collectionViewLayout.incomingAvatarViewSize = CGSize.zero
         collectionView!.collectionViewLayout.outgoingAvatarViewSize = CGSize.zero
         
-        observeEvents()
+        observeMessages()
         
         print(self.userRef)
-        print(senderDisplayName)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -109,7 +110,37 @@ final class ChatViewController: JSQMessagesViewController {
     
     // MARK: Firebase related methods
     
+    private func observeMessages() {
+        print("   getting saved messages via observeMessages")
+        messageRef = userRef!.child("messages")
+        let messageQuery = messageRef?.queryLimited(toLast:20)
+        
+        // 2. We can use the observe method to listen for new
+        // messages being written to the Firebase DB
+        newMessageRefHandle = messageQuery?.observe(.childAdded, with: { (snapshot) -> Void in
+            let messageData = snapshot.value as! Dictionary<String, String>
+            print("saved message: \(messageData)")
+            
+            if let id = messageData["senderId"] as String!,
+                let name = messageData["senderName"] as String!,
+                let text = messageData["text"] as String!,
+                text.characters.count > 0 {
+                
+                // 4
+                self.addMessage(withId: id, name: name, text: text)
+                
+                // 5
+                self.finishReceivingMessage()
+                
+            } else {
+                print("Error! Could not decode message data")
+            }
+        })
+        self.observeEvents()
+    }
+    
     private func observeEvents() {
+        print("   getting today's events via observeEvents")
         let todayDateString = getTodayDateString()
         self.eventRef = FIRDatabase.database().reference().child("events").child(todayDateString)
         
@@ -133,14 +164,14 @@ final class ChatViewController: JSQMessagesViewController {
                 }
             }
             self.events = tempEvents
-            print("this is the post-events: \(self.events)")
+            print("do we have events to share for today? \(self.events.isEmpty == false)")
             
-            // put event into conversation
-            self.openConversationWithTopEvent()
+            // open conversation with top event
+            self.addConversationWithNextEvent()
         })
     }
     
-    private func openConversationWithTopEvent(){
+    private func addConversationWithNextEvent(){
         // gets and sets current event
         if events.isEmpty == false {
             currentEvent = events[0]
@@ -148,7 +179,7 @@ final class ChatViewController: JSQMessagesViewController {
             
             // formats opening message using event and current year
             if let currentEvent = currentEvent {
-                print("this is the first event: \(currentEvent)")
+                print("this is the current event: \(currentEvent.event_title)")
                 let title = currentEvent.title
                 let eventYear = Int(currentEvent.event_year)
                 
@@ -158,25 +189,23 @@ final class ChatViewController: JSQMessagesViewController {
                 let text = "\(currentYear-eventYear!) years ago, \(title)"
                 
                 // 1 - create child ref with unique key for intro message
-                print("this is the userRef for messages: \(userRef)")
                 messageRef = userRef?.child("messages")
                 let itemRef = messageRef?.childByAutoId()
                 
                 let messageItem = [ // 2 - create dict to represent message
-                    "senderId": "Histbotto",
-                    "senderName": "Histbotto",
+                    "senderId": "Histobotto",
+                    "senderName": "Histobotto",
                     "text": text,
                     "messageTime": Date().datetime
                 ]
                 
                 itemRef?.setValue(messageItem) // 3 - save value at child location
                 
-                print("this is the messageItem: \(messageItem)")
+                print("at userRef \(userRef), saving messageItem: \(messageItem)")
                 print("saved event to firebase!")
             }
+            print("this is the next event \(events[0].event_title)")
         }
-        
-        self.observeMessages()
     }
     
     override func didPressSend(_ button: UIButton!,
@@ -205,38 +234,11 @@ final class ChatViewController: JSQMessagesViewController {
         print("message sent for \(messageItem)")
     }
     
-    private func observeMessages() {
-        messageRef = userRef!.child("messages")
-        let messageQuery = messageRef?.queryLimited(toLast:20)
-        
-        // 2. We can use the observe method to listen for new
-        // messages being written to the Firebase DB
-        newMessageRefHandle = messageQuery?.observe(.childAdded, with: { (snapshot) -> Void in
-            let messageData = snapshot.value as! Dictionary<String, String>
-            print("these are the new messages: \(messageData)")
-            
-            if let id = messageData["senderId"] as String!,
-                let name = messageData["senderName"] as String!,
-                let text = messageData["text"] as String!,
-                text.characters.count > 0 {
-                
-                    // 4
-                    self.addMessage(withId: id, name: name, text: text)
-                    
-                    // 5
-                    self.finishReceivingMessage()
-                
-            } else {
-                print("Error! Could not decode message data")
-            }
-        })
-    }
-    
     // MARK: UI and User Interaction
     
     private func setupOutgoingBubble() -> JSQMessagesBubbleImage {
         let bubbleImageFactory = JSQMessagesBubbleImageFactory()
-        return bubbleImageFactory!.outgoingMessagesBubbleImage(with: UIColor.jsq_messageBubbleBlue())
+        return bubbleImageFactory!.outgoingMessagesBubbleImage(with: UIColor(red:1.00, green:0.64, blue:0.00, alpha:1.0))
     }
     
     private func setupIncomingBubble() -> JSQMessagesBubbleImage {

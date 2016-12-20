@@ -96,7 +96,7 @@ class LoginViewController: UIViewController {
             self.userRef = tempUserRef
             DispatchQueue.main.async {
                 self.performSegue(withIdentifier: "LoginToChat", sender: tempUserRef)
-                print("passsed \(self.userRef)")
+                print("passsed userRef \(self.userRef)")
                 
             }
         })
@@ -111,7 +111,7 @@ class LoginViewController: UIViewController {
                     chatVc.senderDisplayName = nameField?.text
                     if let userRef = sender as? FIRDatabaseReference {
                         chatVc.userRef = userRef
-                        print("passsing \(self.userRef) to \(chatVc)")
+                        print("passsing userRef \(self.userRef) to \(chatVc)")
                     }
                 }
             }
