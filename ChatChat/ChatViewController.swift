@@ -132,6 +132,7 @@ final class ChatViewController: JSQMessagesViewController {
     func moreAction(sender:UIButton!) {
         guard sender == moreButton else { return }
         print("More Button Clicked")
+        saveTextAsMessageInFirebase(sender.currentTitle!)
         currentEventDetailStatus = .getEventDetail
         checkEventDetailStatus()
     }
@@ -139,6 +140,7 @@ final class ChatViewController: JSQMessagesViewController {
     func nextAction(sender:UIButton!) {
         guard sender == nextButton else { return }
         print("Next Button Clicked")
+        saveTextAsMessageInFirebase(sender.currentTitle!)
         currentEventDetailStatus = .getNextEvent
         checkEventDetailStatus()
     }
@@ -262,19 +264,8 @@ final class ChatViewController: JSQMessagesViewController {
                 
                 let text = "\(currentYear-eventYear!) years ago, \(title)"
                 
-                // 1 - create child ref with unique key for intro message
-                messageRef = userRef?.child("messages")
-                let itemRef = messageRef?.childByAutoId()
-                
-                let messageItem = [ // 2 - create dict to represent message
-                    "senderId": "Histobotto",
-                    "senderName": "Histobotto",
-                    "text": text,
-                    "messageTime": Date().datetime
-                ]
-                print("converted event to message!")
-                
-                itemRef?.setValue(messageItem) // 3 - save value at child location
+                saveTextAsMessageInFirebase(text)
+
                 print("saved message to firebase at userRef \(userRef)!")
             }
             print("the next event is \(events[0].event_title)")
@@ -287,23 +278,11 @@ final class ChatViewController: JSQMessagesViewController {
         print("user wants more, need follow up reply besides year: \(currentEvent?.event_year)")
         
         // pending description / link data
-        if let currentEvent = currentEvent {
+        if currentEvent != nil {
             let descriptionYetToCome = "need more description blob"
             let linkYetToCome = "need link url"
             
-            // 1 - create child ref with unique key for intro message
-            messageRef = userRef?.child("messages")
-            let itemRef = messageRef?.childByAutoId()
-            
-            let messageItem = [ // 2 - create dict to represent message
-                "senderId": "Histobotto",
-                "senderName": "Histobotto",
-                "text": descriptionYetToCome,
-                "messageTime": Date().datetime
-            ]
-            print("converted description to message!")
-            
-            itemRef?.setValue(messageItem) // 3 - save value at child location
+            saveTextAsMessageInFirebase(descriptionYetToCome+linkYetToCome)
             print("saved description message to firebase!")
         }
     }
@@ -318,20 +297,11 @@ final class ChatViewController: JSQMessagesViewController {
             return
         }
         
-        let itemRef = messageRef?.childByAutoId() // 1 - create child ref with unique key
-        let messageItem = [ // 2 - create dict to represent message
-            "senderId": senderId!,
-            "senderName": senderDisplayName!,
-            "text": text,
-            "messageTime": Date().datetime
-        ]
-        
-        itemRef?.setValue(messageItem) // 3 - save value at child location
-        
+        saveTextAsMessageInFirebase(text)
         JSQSystemSoundPlayer.jsq_playMessageSentSound() // 4
         
         finishSendingMessage() // 5 - send and reset input toolbar to empty
-        print("user had a message: \(messageItem)")
+        print("user had a response: \(text)")
         
         // change eventDetailStatus and then exercise switch statement to get HB response
         if (text.caseInsensitiveCompare("yes") == ComparisonResult.orderedSame) {
@@ -382,7 +352,7 @@ final class ChatViewController: JSQMessagesViewController {
         }
     }
     
-    private func saveUserTextAsMessageInFirebase(_ text: String) {
+    private func saveTextAsMessageInFirebase(_ text: String) {
         let itemRef = messageRef?.childByAutoId() // 1 - create child ref with unique key
         let messageItem = [ // 2 - create dict to represent message
             "senderId": senderId!,
