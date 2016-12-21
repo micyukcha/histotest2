@@ -86,7 +86,7 @@ final class ChatViewController: JSQMessagesViewController {
         stackView.axis  = UILayoutConstraintAxis.horizontal
         stackView.distribution  = UIStackViewDistribution.equalSpacing
         stackView.alignment = UIStackViewAlignment.center
-        stackView.spacing   = 16.0
+        stackView.spacing   = 24.0
         
         stackView.addArrangedSubview(detailsButton)
         stackView.addArrangedSubview(nextButton)
@@ -96,7 +96,8 @@ final class ChatViewController: JSQMessagesViewController {
         
         //Constraints
         stackView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
-        stackView.centerYAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
+        stackView.centerYAnchor.constraint(equalTo: view.bottomAnchor, constant: -30).isActive = true
+        // better to make it equadistant from bottomanchor and bottom of tableview than constant
         
         // MARK: - UI prep
         
