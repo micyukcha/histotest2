@@ -132,7 +132,7 @@ final class ChatViewController: JSQMessagesViewController {
     func moreAction(sender:UIButton!) {
         guard sender == moreButton else { return }
         print("More Button Clicked")
-        saveTextAsMessageInFirebase(sender.currentTitle!)
+        saveTextAsMessageInFirebase(sender.currentTitle!, senderId: senderId, senderName: senderDisplayName)
         currentEventDetailStatus = .getEventDetail
         checkEventDetailStatus()
     }
@@ -140,7 +140,7 @@ final class ChatViewController: JSQMessagesViewController {
     func nextAction(sender:UIButton!) {
         guard sender == nextButton else { return }
         print("Next Button Clicked")
-        saveTextAsMessageInFirebase(sender.currentTitle!)
+        saveTextAsMessageInFirebase(sender.currentTitle!, senderId: senderId, senderName: senderDisplayName)
         currentEventDetailStatus = .getNextEvent
         checkEventDetailStatus()
     }
@@ -264,7 +264,7 @@ final class ChatViewController: JSQMessagesViewController {
                 
                 let text = "\(currentYear-eventYear!) years ago, \(title)"
                 
-                saveTextAsMessageInFirebase(text)
+                saveTextAsMessageInFirebase(text, senderId: "Histobotto", senderName: "Histobotto")
 
                 print("saved message to firebase at userRef \(userRef)!")
             }
@@ -282,7 +282,7 @@ final class ChatViewController: JSQMessagesViewController {
             let descriptionYetToCome = "need more description blob"
             let linkYetToCome = "need link url"
             
-            saveTextAsMessageInFirebase(descriptionYetToCome+linkYetToCome)
+            saveTextAsMessageInFirebase(descriptionYetToCome+linkYetToCome, senderId: "Histobotto", senderName: "Histobotto")
             print("saved description message to firebase!")
         }
     }
@@ -297,7 +297,7 @@ final class ChatViewController: JSQMessagesViewController {
             return
         }
         
-        saveTextAsMessageInFirebase(text)
+        saveTextAsMessageInFirebase(text, senderId: senderId, senderName: senderDisplayName)
         JSQSystemSoundPlayer.jsq_playMessageSentSound() // 4
         
         finishSendingMessage() // 5 - send and reset input toolbar to empty
@@ -352,11 +352,11 @@ final class ChatViewController: JSQMessagesViewController {
         }
     }
     
-    private func saveTextAsMessageInFirebase(_ text: String) {
+    private func saveTextAsMessageInFirebase(_ text: String, senderId: String, senderName: String) {
         let itemRef = messageRef?.childByAutoId() // 1 - create child ref with unique key
         let messageItem = [ // 2 - create dict to represent message
-            "senderId": senderId!,
-            "senderName": senderDisplayName!,
+            "senderId": senderId,
+            "senderName": senderName,
             "text": text,
             "messageTime": Date().datetime
         ]
