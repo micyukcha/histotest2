@@ -132,11 +132,15 @@ final class ChatViewController: JSQMessagesViewController {
     func moreAction(sender:UIButton!) {
         guard sender == moreButton else { return }
         print("More Button Clicked")
+        currentEventDetailStatus = .getEventDetail
+        checkEventDetailStatus()
     }
     
     func nextAction(sender:UIButton!) {
         guard sender == nextButton else { return }
         print("Next Button Clicked")
+        currentEventDetailStatus = .getNextEvent
+        checkEventDetailStatus()
     }
     
     // MARK: Collection view data source (and related) methods
@@ -284,8 +288,8 @@ final class ChatViewController: JSQMessagesViewController {
         
         // pending description / link data
         if let currentEvent = currentEvent {
-            let descriptionYetToCome = currentEvent.title
-            let linkYetToCome = currentEvent.title
+            let descriptionYetToCome = "need more description blob"
+            let linkYetToCome = "need link url"
             
             // 1 - create child ref with unique key for intro message
             messageRef = userRef?.child("messages")
@@ -376,6 +380,18 @@ final class ChatViewController: JSQMessagesViewController {
         case .getNextEvent:
             startEventTopic()
         }
+    }
+    
+    private func saveUserTextAsMessageInFirebase(_ text: String) {
+        let itemRef = messageRef?.childByAutoId() // 1 - create child ref with unique key
+        let messageItem = [ // 2 - create dict to represent message
+            "senderId": senderId!,
+            "senderName": senderDisplayName!,
+            "text": text,
+            "messageTime": Date().datetime
+        ]
+        
+        itemRef?.setValue(messageItem) // 3 - save value at child location
     }
     
     // MARK: UITextViewDelegate methods
