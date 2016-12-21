@@ -42,6 +42,10 @@ final class ChatViewController: JSQMessagesViewController {
     lazy var outgoingBubbleImageView: JSQMessagesBubbleImage = self.setupOutgoingBubble()
     lazy var incomingBubbleImageView: JSQMessagesBubbleImage = self.setupIncomingBubble()
     
+    // interactions
+    var moreButton: UIButton!
+    var nextButton: UIButton!
+    
     enum eventDetailStatus {
         case getEventDetail
         case getNextEvent
@@ -49,15 +53,14 @@ final class ChatViewController: JSQMessagesViewController {
     
     var currentEventDetailStatus = eventDetailStatus.getEventDetail
     
-    
     // MARK: View Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.senderId = FIRAuth.auth()?.currentUser?.uid
-        print("here is the userRef \(self.senderId) and senderDisplayName \(senderDisplayName)")
         
         // MARK: - Data prep
+        self.senderId = FIRAuth.auth()?.currentUser?.uid
+        print("here is the userRef \(self.senderId) and senderDisplayName \(senderDisplayName)")
         
         observeMessages()
         print(self.userRef)
@@ -65,21 +68,23 @@ final class ChatViewController: JSQMessagesViewController {
         // MARK: - Programmatic views
         
         //Create buttons
-        let detailsButton = UIButton()
-        detailsButton.sizeToFit()
-        detailsButton.contentEdgeInsets = UIEdgeInsetsMake(5,5,5,5)
-        detailsButton.backgroundColor = UIColor(red:1.00, green:0.64, blue:0.00, alpha:1.0)
-        detailsButton.setTitle("more", for: .normal)
-        detailsButton.setTitleColor(UIColor.white, for: .normal)
-        detailsButton.layer.cornerRadius = 10
+        let moreBut = UIButton()
+        moreBut.sizeToFit()
+        moreBut.contentEdgeInsets = UIEdgeInsetsMake(5,5,5,5)
+        moreBut.backgroundColor = UIColor(red:1.00, green:0.64, blue:0.00, alpha:1.0)
+        moreBut.setTitle("more", for: .normal)
+        moreBut.setTitleColor(UIColor.white, for: .normal)
+        moreBut.layer.cornerRadius = 10
+        moreBut.addTarget(self, action: #selector(moreAction), for: UIControlEvents.touchUpInside)
         
-        let nextButton = UIButton()
-        nextButton.sizeToFit()
-        nextButton.contentEdgeInsets = UIEdgeInsetsMake(5,5,5,5)
-        nextButton.backgroundColor = UIColor(red:1.00, green:0.64, blue:0.00, alpha:1.0)
-        nextButton.setTitle("next", for: .normal)
-        nextButton.setTitleColor(UIColor.white, for: .normal)
-        nextButton.layer.cornerRadius = 10
+        let nextBut = UIButton()
+        nextBut.sizeToFit()
+        nextBut.contentEdgeInsets = UIEdgeInsetsMake(5,5,5,5)
+        nextBut.backgroundColor = UIColor(red:1.00, green:0.64, blue:0.00, alpha:1.0)
+        nextBut.setTitle("next", for: .normal)
+        nextBut.setTitleColor(UIColor.white, for: .normal)
+        nextBut.layer.cornerRadius = 10
+        nextBut.addTarget(self, action: #selector(nextAction), for: UIControlEvents.touchUpInside)
         
         //Stack View
         let stackView   = UIStackView()
@@ -88,22 +93,24 @@ final class ChatViewController: JSQMessagesViewController {
         stackView.alignment = UIStackViewAlignment.center
         stackView.spacing   = 24.0
         
-        stackView.addArrangedSubview(detailsButton)
-        stackView.addArrangedSubview(nextButton)
+        stackView.addArrangedSubview(moreBut)
+        stackView.addArrangedSubview(nextBut)
         stackView.translatesAutoresizingMaskIntoConstraints = false;
         
         self.view.addSubview(stackView)
+        moreButton = moreBut
+        nextButton = nextBut
         
         //Constraints
         stackView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
-        stackView.centerYAnchor.constraint(equalTo: view.bottomAnchor, constant: -30).isActive = true
+        stackView.centerYAnchor.constraint(equalTo: view.bottomAnchor, constant: -25).isActive = true
         // better to make it equadistant from bottomanchor and bottom of tableview than constant
         
         // MARK: - UI prep
         
         self.title = "histobotto"
-        // self.collectionView.collectionViewLayout.springinessEnabled = true
-         self.inputToolbar.isHidden = true
+        self.collectionView.collectionViewLayout.springinessEnabled = true
+        self.inputToolbar.isHidden = true
         
         // No avatars
         collectionView!.collectionViewLayout.incomingAvatarViewSize = CGSize.zero
@@ -118,6 +125,18 @@ final class ChatViewController: JSQMessagesViewController {
         if let refHandle = eventRefHandle {
             eventRef?.removeObserver(withHandle: refHandle)
         }
+    }
+    
+    // MARK :Actions
+    
+    func moreAction(sender:UIButton!) {
+        guard sender == moreButton else { return }
+        print("More Button Clicked")
+    }
+    
+    func nextAction(sender:UIButton!) {
+        guard sender == nextButton else { return }
+        print("Next Button Clicked")
     }
     
     // MARK: Collection view data source (and related) methods
