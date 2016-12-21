@@ -51,6 +51,10 @@ class LoginViewController: UIViewController {
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIKeyboardWillHide, object: nil)
     }
     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+    }
+    
     deinit {
         if let refHandle = channelRefHandle {
             channelRef.removeObserver(withHandle: refHandle)
@@ -132,4 +136,6 @@ class LoginViewController: UIViewController {
     }
     
 }
+
+
 

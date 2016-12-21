@@ -57,18 +57,56 @@ final class ChatViewController: JSQMessagesViewController {
         self.senderId = FIRAuth.auth()?.currentUser?.uid
         print("here is the userRef \(self.senderId) and senderDisplayName \(senderDisplayName)")
         
-        // UI prep
+        // MARK: - Data prep
+        
+        observeMessages()
+        print(self.userRef)
+        
+        // MARK: - Programmatic views
+        
+        //Create buttons
+        let detailsButton = UIButton()
+        detailsButton.sizeToFit()
+        detailsButton.contentEdgeInsets = UIEdgeInsetsMake(5,5,5,5)
+        detailsButton.backgroundColor = UIColor(red:1.00, green:0.64, blue:0.00, alpha:1.0)
+        detailsButton.setTitle("more", for: .normal)
+        detailsButton.setTitleColor(UIColor.white, for: .normal)
+        detailsButton.layer.cornerRadius = 10
+        
+        let nextButton = UIButton()
+        nextButton.sizeToFit()
+        nextButton.contentEdgeInsets = UIEdgeInsetsMake(5,5,5,5)
+        nextButton.backgroundColor = UIColor(red:1.00, green:0.64, blue:0.00, alpha:1.0)
+        nextButton.setTitle("next", for: .normal)
+        nextButton.setTitleColor(UIColor.white, for: .normal)
+        nextButton.layer.cornerRadius = 10
+        
+        //Stack View
+        let stackView   = UIStackView()
+        stackView.axis  = UILayoutConstraintAxis.horizontal
+        stackView.distribution  = UIStackViewDistribution.equalSpacing
+        stackView.alignment = UIStackViewAlignment.center
+        stackView.spacing   = 16.0
+        
+        stackView.addArrangedSubview(detailsButton)
+        stackView.addArrangedSubview(nextButton)
+        stackView.translatesAutoresizingMaskIntoConstraints = false;
+        
+        self.view.addSubview(stackView)
+        
+        //Constraints
+        stackView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
+        stackView.centerYAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
+        
+        // MARK: - UI prep
+        
         self.title = "histobotto"
         // self.collectionView.collectionViewLayout.springinessEnabled = true
-        // self.inputToolbar.isHidden = true
+         self.inputToolbar.isHidden = true
         
         // No avatars
         collectionView!.collectionViewLayout.incomingAvatarViewSize = CGSize.zero
         collectionView!.collectionViewLayout.outgoingAvatarViewSize = CGSize.zero
-        
-        observeMessages()
-        
-        print(self.userRef)
     }
     
     override func viewDidAppear(_ animated: Bool) {
