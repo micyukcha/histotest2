@@ -56,9 +56,11 @@ final class ChatViewController: JSQMessagesViewController {
         super.viewDidLoad()
         self.senderId = FIRAuth.auth()?.currentUser?.uid
         print("here is the userRef \(self.senderId) and senderDisplayName \(senderDisplayName)")
-
+        
+        // UI prep
         self.title = "histobotto"
-//        self.collectionView.collectionViewLayout.springinessEnabled = true
+        // self.collectionView.collectionViewLayout.springinessEnabled = true
+        // self.inputToolbar.isHidden = true
         
         // No avatars
         collectionView!.collectionViewLayout.incomingAvatarViewSize = CGSize.zero
@@ -195,7 +197,7 @@ final class ChatViewController: JSQMessagesViewController {
                 
                 let calendar = NSCalendar.current
                 let currentYear = calendar.component(.year, from: Date())
-
+                
                 let text = "\(currentYear-eventYear!) years ago, \(title)"
                 
                 // 1 - create child ref with unique key for intro message
