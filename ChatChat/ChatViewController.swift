@@ -27,13 +27,15 @@ import JSQMessagesViewController
 final class ChatViewController: JSQMessagesViewController {
     
     // MARK: Properties
+    let defaults = UserDefaults.standard
     
     var userRef: FIRDatabaseReference?
     private var messageRef: FIRDatabaseReference?
     private var newMessageRefHandle: FIRDatabaseHandle?
     
-    var events = [Event]()
+    var todayEvents = [Event]()
     var currentEvent: Event?
+    var seenEventFilter: Int?
     private var eventRef: FIRDatabaseReference?
     private var eventRefHandle: FIRDatabaseHandle?
     
@@ -58,12 +60,40 @@ final class ChatViewController: JSQMessagesViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // one-liner to simulate new user
+//        defaults.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
+        
         // MARK: - Data prep
         self.senderId = FIRAuth.auth()?.currentUser?.uid
         print("here is the userRef \(self.senderId) and senderDisplayName \(senderDisplayName)")
         
         observeMessages()
-        print(self.userRef)
+        
+        //update filters
+        if let todayDate = defaults.string(forKey: "eventDateFilter") {
+            
+            // if same date, get latest eventSeenFilter
+            if todayDate == getTodayDateString() {
+                seenEventFilter = defaults.integer(forKey: "eventSeenFilter")
+                print("same date! set seen filter, leave date alone.")
+                
+            // if different date, reset both filters
+            } else {
+                defaults.set(getTodayDateString(), forKey: "eventDateFilter")
+                defaults.set(0, forKey: "eventSeenFilter")
+                seenEventFilter = defaults.integer(forKey: "eventSeenFilter")
+                print("new date! reset both filters.")
+
+            }
+        } else {
+            
+            // set initial date filter
+            defaults.set(getTodayDateString(), forKey: "eventDateFilter")
+            defaults.set(0, forKey: "eventSeenFilter")
+            seenEventFilter = defaults.integer(forKey: "eventSeenFilter")
+            print("new user! placeholders for both filters.")
+
+        }
         
         // MARK: - Programmatic views
         
@@ -109,8 +139,8 @@ final class ChatViewController: JSQMessagesViewController {
         // MARK: - UI prep
         
         self.title = "histobotto"
-        self.collectionView.collectionViewLayout.springinessEnabled = true
         self.inputToolbar.isHidden = true
+        //        self.collectionView.collectionViewLayout.springinessEnabled = true
         
         // No avatars
         collectionView!.collectionViewLayout.incomingAvatarViewSize = CGSize.zero
@@ -195,7 +225,6 @@ final class ChatViewController: JSQMessagesViewController {
         // messages being written to the Firebase DB
         newMessageRefHandle = messageQuery?.observe(.childAdded, with: { (snapshot) -> Void in
             let messageData = snapshot.value as! Dictionary<String, String>
-            print("saved message: \(messageData)")
             
             if let id = messageData["senderId"] as String!,
                 let name = messageData["senderName"] as String!,
@@ -204,6 +233,7 @@ final class ChatViewController: JSQMessagesViewController {
                 
                 // 4
                 self.addMessage(withId: id, name: name, text: text)
+                print("saved message '\(text)' from \(name)")
                 
                 // 5
                 self.finishReceivingMessage()
@@ -222,7 +252,7 @@ final class ChatViewController: JSQMessagesViewController {
         
         var tempEvents: [Event] = []
         
-        eventRef?.queryOrdered(byChild: "title").queryLimited(toFirst: 30).observeSingleEvent(of: .value, with: { (snapshot) in
+        eventRef?.queryOrdered(byChild: "year").queryLimited(toFirst: 30).observeSingleEvent(of: .value, with: { (snapshot) in
             for item in snapshot.children {
                 let child = item as! FIRDataSnapshot
                 let eventFullValues = child.value as! NSDictionary
@@ -239,8 +269,12 @@ final class ChatViewController: JSQMessagesViewController {
                     //                    print("too old")
                 }
             }
-            self.events = tempEvents
-            print("events to share for today? \(self.events.isEmpty == false)")
+            
+            let numberOfEventsForToday = tempEvents.count
+            
+            tempEvents = tempEvents.filter { Int($0.event_year)! > self.seenEventFilter! }
+            self.todayEvents = tempEvents
+            print("\(self.todayEvents.count) events left to share out of \(numberOfEventsForToday)")
             
             // open conversation using top event
             self.startEventTopic()
@@ -248,27 +282,30 @@ final class ChatViewController: JSQMessagesViewController {
     }
     
     private func startEventTopic(){
-        // gets and sets current event
-        if events.isEmpty == false {
-            currentEvent = events[0]
-            events.remove(at: 0)
+        // filter prior events, gets and sets current event
+        if todayEvents.isEmpty == false {
+            currentEvent = todayEvents[0]
+            todayEvents.remove(at: 0)
             
-            // formats opening message using event and current year
+            // formats opening message using currentYear and eventYear
             if let currentEvent = currentEvent {
                 print("set current event to: \(currentEvent.event_title)")
-                let title = currentEvent.title
-                let eventYear = Int(currentEvent.event_year)
-                
                 let calendar = NSCalendar.current
                 let currentYear = calendar.component(.year, from: Date())
                 
+                let title = currentEvent.title
+                let eventYear = Int(currentEvent.event_year)
                 let text = "\(currentYear-eventYear!) years ago, \(title)"
                 
                 saveTextAsMessageInFirebase(text, senderId: "Histobotto", senderName: "Histobotto")
-
-                print("saved message to firebase at userRef \(userRef)!")
+                
+                let latestEventFilter = Int(currentEvent.event_year)
+                seenEventFilter = latestEventFilter
+                defaults.set(latestEventFilter, forKey: "eventSeenFilter")
+                print("current event filter is \(seenEventFilter)")
             }
-            print("the next event is \(events[0].event_title)")
+            
+            print("the next event is \(todayEvents[0].event_title)")
         }
     }
     
