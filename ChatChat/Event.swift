@@ -13,6 +13,7 @@ internal class Event {
     internal let event_title: String
     internal let event_year: String
     //    internal let monthday: String?
+    internal let event_pop_rank: Double
     //    internal let sentiment_polarity: Double
     //    internal let sentiment_subjectivity: Double?
     internal let title: String
@@ -30,11 +31,14 @@ internal class Event {
     init(event_id: Int,
          event_title: String,
          event_year: String,
+         event_pop_rank: Double,
          title: String) {
+        
         self.event_id = event_id
         self.event_title = event_title
         self.event_year = event_year
         //        self.monthday = monthday
+        self.event_pop_rank = event_pop_rank
         //        self.sentiment_polarity = sentiment_polarity
         //        self.sentiment_subjectivity = sentiment_subjectivity
         self.title = title

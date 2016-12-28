@@ -35,7 +35,7 @@ final class ChatViewController: JSQMessagesViewController {
     
     var todayEvents = [Event]()
     var currentEvent: Event?
-    var seenEventFilter: Int?
+    var seenEventFilter: Double?
     private var eventRef: FIRDatabaseReference?
     private var eventRefHandle: FIRDatabaseHandle?
     
@@ -74,14 +74,14 @@ final class ChatViewController: JSQMessagesViewController {
             
             // if same date, get latest eventSeenFilter
             if todayDate == getTodayDateString() {
-                seenEventFilter = defaults.integer(forKey: "eventSeenFilter")
+                seenEventFilter = defaults.double(forKey: "eventSeenFilter")
                 print("same date! set seen filter, leave date alone.")
                 
             // if different date, reset both filters
             } else {
                 defaults.set(getTodayDateString(), forKey: "eventDateFilter")
-                defaults.set(0, forKey: "eventSeenFilter")
-                seenEventFilter = defaults.integer(forKey: "eventSeenFilter")
+                defaults.set(10000, forKey: "eventSeenFilter")
+                seenEventFilter = defaults.double(forKey: "eventSeenFilter")
                 print("new date! reset both filters.")
 
             }
@@ -89,8 +89,8 @@ final class ChatViewController: JSQMessagesViewController {
             
             // set initial date filter
             defaults.set(getTodayDateString(), forKey: "eventDateFilter")
-            defaults.set(0, forKey: "eventSeenFilter")
-            seenEventFilter = defaults.integer(forKey: "eventSeenFilter")
+            defaults.set(10000, forKey: "eventSeenFilter")
+            seenEventFilter = defaults.double(forKey: "eventSeenFilter")
             print("new user! placeholders for both filters.")
 
         }
@@ -233,7 +233,7 @@ final class ChatViewController: JSQMessagesViewController {
                 
                 // 4
                 self.addMessage(withId: id, name: name, text: text)
-                print("saved message '\(text)' from \(name)")
+                print("Message Sent & Saved! \(name) said '\(text)'.")
                 
                 // 5
                 self.finishReceivingMessage()
@@ -252,7 +252,7 @@ final class ChatViewController: JSQMessagesViewController {
         
         var tempEvents: [Event] = []
         
-        eventRef?.queryOrdered(byChild: "year").queryLimited(toFirst: 30).observeSingleEvent(of: .value, with: { (snapshot) in
+        eventRef?.queryOrdered(byChild: "event_pop_rank").observeSingleEvent(of: .value, with: { (snapshot) in
             for item in snapshot.children {
                 let child = item as! FIRDataSnapshot
                 let eventFullValues = child.value as! NSDictionary
@@ -260,11 +260,12 @@ final class ChatViewController: JSQMessagesViewController {
                 let id = eventFullValues["event_id"] as! Int
                 let event_title = eventFullValues["event_title"] as! String
                 let year = eventFullValues["event_year"] as! String
+                let event_pop_rank = eventFullValues["event_pop_rank"] as! Double
                 let title = eventFullValues["title"] as! String
                 
                 if year > "1900" { //use queryOrder/Limit to limit local data (popularity?), then use other metrics for filtering
-                    print("event_title: \(event_title)")
-                    tempEvents.append(Event(event_id: id, event_title: event_title, event_year: year, title: title))
+                    print("event_pop_rank: \(event_pop_rank) for \(event_title)")
+                    tempEvents.append(Event(event_id: id, event_title: event_title, event_year: year, event_pop_rank: event_pop_rank, title: title))
                 } else {
                     //                    print("too old")
                 }
@@ -272,7 +273,12 @@ final class ChatViewController: JSQMessagesViewController {
             
             let numberOfEventsForToday = tempEvents.count
             
-            tempEvents = tempEvents.filter { Int($0.event_year)! > self.seenEventFilter! }
+            // reverse array and take top 10
+            tempEvents.reverse()
+            tempEvents = Array(tempEvents.prefix(10))
+            
+            // reset event_pop_rank to latest
+            tempEvents = tempEvents.filter { Double($0.event_pop_rank) < self.seenEventFilter! }
             self.todayEvents = tempEvents
             print("\(self.todayEvents.count) events left to share out of \(numberOfEventsForToday)")
             
@@ -295,11 +301,11 @@ final class ChatViewController: JSQMessagesViewController {
                 
                 let title = currentEvent.title
                 let eventYear = Int(currentEvent.event_year)
-                let text = "\(currentYear-eventYear!) years ago, \(title)"
+                let text = "\(currentYear-eventYear!) years ago today, \(title)"
                 
                 saveTextAsMessageInFirebase(text, senderId: "Histobotto", senderName: "Histobotto")
                 
-                let latestEventFilter = Int(currentEvent.event_year)
+                let latestEventFilter = Double(currentEvent.event_pop_rank)
                 seenEventFilter = latestEventFilter
                 defaults.set(latestEventFilter, forKey: "eventSeenFilter")
                 print("current event filter is \(seenEventFilter)")
