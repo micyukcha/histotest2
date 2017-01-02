@@ -7,14 +7,14 @@
     "7FD664BB7848BBF8D8F4E4486CB37C17B9650DA6" : 9223372036854775807,
     "B3CC06141CF9E1BC6CEBA488B8633CCE4D6EEBE6" : 9223372036854775807
   },
-  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "B6F63EB4-25F5-4CA5-8E22-ABF9EA3F3D32",
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "357AA18B-F91B-4A40-8CEE-32B908E39CE4",
   "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
     "7FD664BB7848BBF8D8F4E4486CB37C17B9650DA6" : "ChatChatFirebaseTutorial-start\/",
     "B3CC06141CF9E1BC6CEBA488B8633CCE4D6EEBE6" : ""
   },
   "DVTSourceControlWorkspaceBlueprintNameKey" : "ChatChat",
   "DVTSourceControlWorkspaceBlueprintVersion" : 204,
-  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "ChatChat.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "ChatChat.xcodeproj",
   "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
     {
       "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:micyukcha\/histotest2.git",

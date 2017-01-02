@@ -80,7 +80,7 @@ final class ChatViewController: JSQMessagesViewController {
             // if different date, reset both filters
             } else {
                 defaults.set(getTodayDateString(), forKey: "eventDateFilter")
-                defaults.set(10000, forKey: "eventSeenFilter")
+                defaults.set(100000, forKey: "eventSeenFilter")
                 seenEventFilter = defaults.double(forKey: "eventSeenFilter")
                 print("new date! reset both filters.")
 
@@ -89,7 +89,7 @@ final class ChatViewController: JSQMessagesViewController {
             
             // set initial date filter
             defaults.set(getTodayDateString(), forKey: "eventDateFilter")
-            defaults.set(10000, forKey: "eventSeenFilter")
+            defaults.set(100000, forKey: "eventSeenFilter")
             seenEventFilter = defaults.double(forKey: "eventSeenFilter")
             print("new user! placeholders for both filters.")
 
